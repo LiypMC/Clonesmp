@@ -1,0 +1,9 @@
+CloneSMP Plugin – All Rights Reserved © 2025 Naol A. Demisse
+
+This software and its source code are proprietary. No part of this
+plugin may be copied, distributed, decompiled, modified, or otherwise
+used in any form without the express prior written permission of
+Naol A. Demisse.
+
+For licensing inquiries or commercial use, please contact:
+    hi@naol.com

@@ -1,0 +1,25 @@
+END‑USER LICENSE AGREEMENT (EULA)
+
+By installing or running CloneSMP, you agree to the following terms:
+
+1. GRANT OF LICENSE
+   You are granted a limited, non‑transferable license to install and
+   use CloneSMP on servers you own or administer.
+
+2. RESTRICTIONS
+   You MAY NOT:
+     • Redistribute this plugin (in whole or in part) without permission.
+     • Decompile, reverse‑engineer, or create derivative works.
+     • Sell or sublicense this software without explicit written consent.
+
+3. NO WARRANTY
+   This software is provided “as is,” without warranty of any kind.
+   The author shall not be liable for any damages arising from its use.
+
+4. TERMINATION
+   This license is effective until terminated. It will terminate
+   immediately without notice if you fail to comply with any term.
+
+5. CONTACT
+   For permission requests or questions, contact:
+     hi@naol.com
