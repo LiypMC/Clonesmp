@@ -1,0 +1,30 @@
+name: CloneSMP
+main: com.Liyp.clonesmp.CloneSMP
+version: 1.0.0
+api-version: 1.19
+description: A survival plugin that implements a lives system with player heads
+author: Liyp
+
+commands:
+  clonesmp:
+    description: Main command for CloneSMP plugin
+    usage: /clonesmp <reload|lives|reset|debug|help>
+    aliases: [csmp]
+    permission: clonesmp.command
+
+permissions:
+  clonesmp.command:
+    description: Allows use of basic CloneSMP commands
+    default: true
+  clonesmp.admin.reload:
+    description: Allows reloading the plugin configuration
+    default: op
+  clonesmp.admin.lives:
+    description: Allows checking other players' lives
+    default: op
+  clonesmp.admin.reset:
+    description: Allows resetting a player's lives
+    default: op
+  clonesmp.admin.debug:
+    description: Allows sending debug messages to console
+    default: op
