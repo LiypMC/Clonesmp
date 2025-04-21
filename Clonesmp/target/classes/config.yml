@@ -1,0 +1,18 @@
+# CloneSMP Configuration
+
+# Maximum number of lives before a player is banned
+max-lives: 3
+
+# Whether to broadcast death messages to all players
+broadcast-deaths: true
+
+# Whether to drop player heads on death
+drop-head-on-death: true
+
+
+
+
+
+
+
+
