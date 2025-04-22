@@ -1,15 +1,14 @@
 name: CloneSMP
 main: com.Liyp.clonesmp.CloneSMP
-version: 1.0
-api-version: 1.21
-license: All Rights Reserved
+version: 1.1.0
+api-version: 1.19
 description: A survival plugin that implements a lives system with player heads
 author: Liyp
 
 commands:
   clonesmp:
     description: Main command for CloneSMP plugin
-    usage: /clonesmp <reload|lives|reset|debug|help>
+    usage: /clonesmp <reload|lives|reset|crystal|debug|help>
     aliases: [csmp]
     permission: clonesmp.command
 
@@ -28,4 +27,7 @@ permissions:
     default: op
   clonesmp.admin.debug:
     description: Allows sending debug messages to console
+    default: op
+  clonesmp.admin.crystal:
+    description: Allows managing Life Crystals
     default: op

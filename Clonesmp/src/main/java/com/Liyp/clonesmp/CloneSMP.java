@@ -17,19 +17,21 @@ import org.bukkit.plugin.java.JavaPlugin;
  * - Players drop their head on death
  * - Players are banned after using all lives
  * - Teammates can craft a Mega Head to unban players
+ * - Life Crystals can be crafted to gain an extra life
  */
 public class CloneSMP extends JavaPlugin {
     private static CloneSMP instance;
     private File dataFile;
     private YamlConfiguration dataConfig;
     private File configFile;
-    // Removed unused pluginConfig field
     private NamespacedKey megaHeadKey;
+    private LifeCrystalItem lifeCrystalItem;
     
     // Default configuration values
     private int maxLives = 3;
     private boolean broadcastDeaths = true;
     private boolean dropHeadOnDeath = true;
+    private boolean lifeCrystalsEnabled = true;
 
     @Override
     public void onEnable() {
@@ -53,6 +55,12 @@ public class CloneSMP extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new DeathListener(), this);
             getServer().getPluginManager().registerEvents(new MegaHeadListener(), this);
             Bukkit.getConsoleSender().sendMessage("§a[CloneSMP] §fRegistered event listeners");
+            
+            // Initialize Life Crystal feature if enabled
+            if (lifeCrystalsEnabled) {
+                lifeCrystalItem = new LifeCrystalItem(this);
+                Bukkit.getConsoleSender().sendMessage("§a[CloneSMP] §fLife Crystal feature enabled");
+            }
 
             // Send console messages in multiple formats to ensure visibility
             getLogger().info("====== CloneSMP Enabled ======");
@@ -61,6 +69,10 @@ public class CloneSMP extends JavaPlugin {
             // Direct console messages that should be more visible
             Bukkit.getConsoleSender().sendMessage("§e====== §a[CloneSMP] §2ENABLED §e======");
             Bukkit.getConsoleSender().sendMessage("§a[CloneSMP] §fPlayers have §e" + maxLives + " §flives before being banned");
+            if (lifeCrystalsEnabled) {
+                Bukkit.getConsoleSender().sendMessage("§a[CloneSMP] §fPlayers can use Life Crystals to get extra lives (max: §e" + 
+                                                      getConfig().getInt("max-life-crystals", 5) + "§f)");
+            }
             
             // Try severe logging level as well
             getLogger().log(Level.SEVERE, "CloneSMP Plugin Enabled Successfully");
@@ -134,11 +146,13 @@ public class CloneSMP extends JavaPlugin {
         maxLives = getConfig().getInt("max-lives", 3);
         broadcastDeaths = getConfig().getBoolean("broadcast-deaths", true);
         dropHeadOnDeath = getConfig().getBoolean("drop-head-on-death", true);
+        lifeCrystalsEnabled = getConfig().getBoolean("life-crystal.enabled", true);
         
         Bukkit.getConsoleSender().sendMessage("§a[CloneSMP] §fLoaded configuration values:");
         Bukkit.getConsoleSender().sendMessage("§a[CloneSMP] §f- Max Lives: §e" + maxLives);
         Bukkit.getConsoleSender().sendMessage("§a[CloneSMP] §f- Broadcast Deaths: §e" + broadcastDeaths);
         Bukkit.getConsoleSender().sendMessage("§a[CloneSMP] §f- Drop Head on Death: §e" + dropHeadOnDeath);
+        Bukkit.getConsoleSender().sendMessage("§a[CloneSMP] §f- Life Crystals Enabled: §e" + lifeCrystalsEnabled);
     }
     
     /**
@@ -203,6 +217,22 @@ public class CloneSMP extends JavaPlugin {
     }
     
     /**
+     * Get the Life Crystal manager
+     * @return The Life Crystal manager instance
+     */
+    public LifeCrystalItem getLifeCrystalManager() {
+        return lifeCrystalItem;
+    }
+    
+    /**
+     * Check if Life Crystals are enabled
+     * @return True if Life Crystals are enabled
+     */
+    public boolean areLifeCrystalsEnabled() {
+        return lifeCrystalsEnabled;
+    }
+    
+    /**
      * Reload the plugin configuration
      */
     public void reloadConfigs() {
@@ -210,6 +240,20 @@ public class CloneSMP extends JavaPlugin {
             reloadConfig();
             loadConfigValues();
             dataConfig = YamlConfiguration.loadConfiguration(dataFile);
+            
+            // Reinitialize Life Crystal feature if enabled/disabled state changed
+            boolean newLifeCrystalsEnabled = getConfig().getBoolean("life-crystal.enabled", true);
+            if (newLifeCrystalsEnabled != lifeCrystalsEnabled) {
+                lifeCrystalsEnabled = newLifeCrystalsEnabled;
+                if (lifeCrystalsEnabled) {
+                    lifeCrystalItem = new LifeCrystalItem(this);
+                    Bukkit.getConsoleSender().sendMessage("§a[CloneSMP] §fLife Crystal feature enabled");
+                } else {
+                    lifeCrystalItem = null;
+                    Bukkit.getConsoleSender().sendMessage("§a[CloneSMP] §fLife Crystal feature disabled");
+                }
+            }
+            
             Bukkit.getConsoleSender().sendMessage("§a[CloneSMP] §fPlugin configuration reloaded successfully");
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Error reloading configuration", e);

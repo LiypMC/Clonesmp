@@ -13,6 +13,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * Handles all commands for the CloneSMP plugin
@@ -110,6 +111,54 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
                 resetPlayerLives(sender, args[1]);
                 return true;
                 
+            case "crystal":
+                if (!sender.hasPermission("clonesmp.admin.crystal")) {
+                    sender.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
+                    return true;
+                }
+                
+                if (!plugin.areLifeCrystalsEnabled()) {
+                    sender.sendMessage(ChatColor.RED + "Life Crystals are disabled on this server.");
+                    return true;
+                }
+                
+                if (args.length < 2) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /clonesmp crystal <get|give> [player]");
+                    return true;
+                }
+                
+                switch (args[1].toLowerCase()) {
+                    case "get":
+                        if (!(sender instanceof Player)) {
+                            sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+                            return true;
+                        }
+                        
+                        Player player = (Player) sender;
+                        giveLifeCrystal(player, player);
+                        return true;
+                        
+                    case "give":
+                        if (args.length < 3) {
+                            sender.sendMessage(ChatColor.RED + "Usage: /clonesmp crystal give <player>");
+                            return true;
+                        }
+                        
+                        Player target = Bukkit.getPlayer(args[2]);
+                        if (target == null) {
+                            sender.sendMessage(ChatColor.RED + "Player not found: " + args[2]);
+                            return true;
+                        }
+                        
+                        giveLifeCrystal(sender, target);
+                        return true;
+                        
+                    default:
+                        sender.sendMessage(ChatColor.RED + "Unknown subcommand: " + args[1]);
+                        sender.sendMessage(ChatColor.RED + "Usage: /clonesmp crystal <get|give> [player]");
+                        return true;
+                }
+                
             case "debug":
                 if (!sender.hasPermission("clonesmp.admin.debug")) {
                     sender.sendMessage(ChatColor.RED + "You don't have permission to use this command.");
@@ -124,6 +173,32 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
                 sendHelpMessage(sender);
                 return true;
         }
+    }
+    
+    /**
+     * Give a Life Crystal to a player
+     * 
+     * @param sender The command sender
+     * @param target The player to give the crystal to
+     */
+    private void giveLifeCrystal(CommandSender sender, Player target) {
+        if (!plugin.areLifeCrystalsEnabled()) {
+            sender.sendMessage(ChatColor.RED + "Life Crystals are disabled on this server.");
+            return;
+        }
+        
+        ItemStack crystal = plugin.getLifeCrystalManager().createLifeCrystal();
+        target.getInventory().addItem(crystal);
+        
+        if (sender == target) {
+            sender.sendMessage(ChatColor.GREEN + "You received a Life Crystal!");
+        } else {
+            sender.sendMessage(ChatColor.GREEN + "Gave a Life Crystal to " + target.getName());
+            target.sendMessage(ChatColor.GREEN + "You received a Life Crystal from " + sender.getName() + "!");
+        }
+        
+        // Log to console
+        Bukkit.getConsoleSender().sendMessage("§a[CloneSMP] §f" + sender.getName() + " gave a Life Crystal to " + target.getName());
     }
     
     /**
@@ -162,6 +237,14 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
         Bukkit.getConsoleSender().sendMessage("§a[CloneSMP] §fServer version: §e" + Bukkit.getVersion());
         Bukkit.getConsoleSender().sendMessage("§a[CloneSMP] §fBukkit version: §e" + Bukkit.getBukkitVersion());
         
+        // Test Life Crystal (if enabled)
+        if (plugin.areLifeCrystalsEnabled()) {
+            Bukkit.getConsoleSender().sendMessage("§a[CloneSMP] §fLife Crystals are enabled (max: §e" + 
+                                                 plugin.getConfig().getInt("max-life-crystals", 5) + "§f)");
+        } else {
+            Bukkit.getConsoleSender().sendMessage("§a[CloneSMP] §fLife Crystals are disabled");
+        }
+        
         sender.sendMessage(ChatColor.GREEN + "Debug messages sent! Check your console.");
     }
     
@@ -173,6 +256,10 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
     private void sendHelpMessage(CommandSender sender) {
         sender.sendMessage(ChatColor.GOLD + "===== CloneSMP Commands =====");
         sender.sendMessage(ChatColor.YELLOW + "/clonesmp lives [player]" + ChatColor.WHITE + " - Check remaining lives");
+        
+        if (plugin.areLifeCrystalsEnabled() && sender.hasPermission("clonesmp.admin.crystal")) {
+            sender.sendMessage(ChatColor.YELLOW + "/clonesmp crystal <get|give> [player]" + ChatColor.WHITE + " - Manage Life Crystals");
+        }
         
         if (sender.hasPermission("clonesmp.admin.reload")) {
             sender.sendMessage(ChatColor.YELLOW + "/clonesmp reload" + ChatColor.WHITE + " - Reload configuration");
@@ -202,6 +289,12 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
         int livesLeft = Math.max(0, maxLives - deaths);
         
         sender.sendMessage(ChatColor.GOLD + "Lives: " + ChatColor.WHITE + livesLeft + "/" + maxLives);
+        
+        if (plugin.areLifeCrystalsEnabled()) {
+            int maxLifeCrystals = plugin.getConfig().getInt("max-life-crystals", 5);
+            sender.sendMessage(ChatColor.LIGHT_PURPLE + "Maximum Lives with Crystals: " + 
+                              ChatColor.WHITE + maxLifeCrystals);
+        }
     }
     
     /**
@@ -218,6 +311,12 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
         
         sender.sendMessage(ChatColor.GOLD + target.getName() + "'s lives: " + 
                           ChatColor.WHITE + livesLeft + "/" + maxLives);
+        
+        if (plugin.areLifeCrystalsEnabled()) {
+            int maxLifeCrystals = plugin.getConfig().getInt("max-life-crystals", 5);
+            sender.sendMessage(ChatColor.LIGHT_PURPLE + "Maximum Lives with Crystals: " + 
+                              ChatColor.WHITE + maxLifeCrystals);
+        }
     }
     
     /**
@@ -284,13 +383,21 @@ public class CommandHandler implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             List<String> commands = Arrays.asList("lives", "help", "reload", "reset");
             
-            if (sender.hasPermission("clonesmp.admin.debug")) {
+            if (plugin.areLifeCrystalsEnabled() && sender.hasPermission("clonesmp.admin.crystal")) {
+                commands = Arrays.asList("lives", "help", "reload", "reset", "crystal", "debug");
+            } else if (sender.hasPermission("clonesmp.admin.debug")) {
                 commands = Arrays.asList("lives", "help", "reload", "reset", "debug");
             }
             
             return filterCompletions(commands, args[0]);
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("lives") || args[0].equalsIgnoreCase("reset")) {
+                return null; // Return null for player name list (Bukkit handles this automatically)
+            } else if (args[0].equalsIgnoreCase("crystal") && sender.hasPermission("clonesmp.admin.crystal")) {
+                return filterCompletions(Arrays.asList("get", "give"), args[1]);
+            }
+        } else if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("crystal") && args[1].equalsIgnoreCase("give")) {
                 return null; // Return null for player name list (Bukkit handles this automatically)
             }
         }

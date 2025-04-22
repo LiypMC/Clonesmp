@@ -9,10 +9,28 @@ broadcast-deaths: true
 # Whether to drop player heads on death
 drop-head-on-death: true
 
+# Maximum number of lives a player can have (with Life Crystals)
+max-life-crystals: 5
 
-
-
-
-
-
-
+# Life Crystal Settings
+life-crystal:
+  # Whether Life Crystals are enabled
+  enabled: true
+  
+  # Recipe shape (E = End Crystal, H = Player Head)
+  # The shape is a 3x3 grid, with each row represented by a string
+  recipe:
+    - "EEE"
+    - "EHE"
+    - "EEE"
+    
+  # Replacement characters for recipe ingredients
+  ingredients:
+    E: END_CRYSTAL
+    H: PLAYER_HEAD
+    
+  # Effects when using a Life Crystal
+  effects:
+    sound: ENTITY_PLAYER_LEVELUP
+    broadcast-message: true
+    particles: true
